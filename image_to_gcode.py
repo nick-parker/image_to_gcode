@@ -56,8 +56,8 @@ class ImageToGcode():
                     pass
             if y % 12 == 0 and y > 0:
                 for headNumber, headVals in enumerate(nozzleFirings):
-                    pass1 = []
-                    pass2 = []
+                    pass1 = ''
+                    pass2 = ''
                     for column, firingVal in enumerate(headVals):
                         if firingVal:
                             currentOffset = self.offsets[headNumber]
@@ -73,8 +73,8 @@ class ImageToGcode():
                             pass2 += "G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
                             pass2 += "M400\n"
                             pass2 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
-                    self.output.extend(pass1)
-                    self.output.extend(pass2.reverse())
+                    self.output += pass1
+                    self.output += pass2.reverse()
                 #print(str(nozzleFirings))
                 nozzleFirings = [0 for x in range(0, self.img.cols)]
                 nozzleFirings = [copy.copy(nozzleFirings) for x in range(0, 4)]
