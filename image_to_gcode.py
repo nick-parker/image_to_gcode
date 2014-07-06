@@ -67,16 +67,17 @@ class ImageToGcode():
                             pass1 += "G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str(y/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
                             pass1 += "M400\n"
                             pass1 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
-                            pass2 += "G1X"+str(self.increment*column-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
-                            pass2 += "M400\n"
-                            pass2 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
-                            pass2 += "G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
-                            pass2 += "M400\n"
-                            pass2 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
+                            pass2.append("G1X"+str(self.increment*column-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
+                            pass2.append("M400\n")
+                            pass2.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
+                            pass2.append("G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
+                            pass2.append("M400\n")
+                            pass2.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
                     self.output += pass1
-                    pass2 = pass2.reverse()
+                    pass2 = reversed(pass2)
                     pass2string = ''
-                    for line in pass2: pass2string += line
+                    for line in pass2: 
+                        pass2string += line
                     self.output+=pass2string
                 #print(str(nozzleFirings))
                 nozzleFirings = [0 for x in range(0, self.img.cols)]
