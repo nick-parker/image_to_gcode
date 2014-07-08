@@ -17,7 +17,7 @@ class ImageToGcode():
                  nozzles,
                  area,
                  feedrate,
-                 offsets,
+                 offsets,passes=1,
                  verbose=False):
         self.img = cv.LoadImageM(img)
         self.output = ""
@@ -32,6 +32,7 @@ class ImageToGcode():
         self.blue = (255.0, 0.0, 0.0, 0.0)
         self.black = (0.0, 0.0, 0.0, 0.0)
         self.offsets = offsets
+        self.passes = passes
         self.debug_to_terminal()
         self.make_gcode()
 
@@ -56,30 +57,21 @@ class ImageToGcode():
                     pass
             if y % 12 == 0 and y > 0:
                 for headNumber, headVals in enumerate(nozzleFirings):
-                    pass1 = ''
-                    pass2 = []
-                    for column, firingVal in enumerate(headVals):
-                        if firingVal:
-                            currentOffset = self.offsets[headNumber]
-                            pass1 += "G1X"+str(self.increment*column-currentOffset[0])+"Y"+str(y/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
-                            pass1 += "M400\n"
-                            pass1 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
-                            pass1 += "G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str(y/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n"
-                            pass1 += "M400\n"
-                            pass1 += "M700 P"+str(headNumber)+" S"+str(firingVal)+"\n"
-                            pass2.append("G1X"+str(self.increment*column-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
-                            pass2.append("M400\n")
-                            pass2.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
-                            pass2.append("G1X"+str(self.increment*(column+0.5)-currentOffset[0])+"Y"+str((y+0.5)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
-                            pass2.append("M400\n")
-                            pass2.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
-                    self.output += pass1
-                    pass2 = reversed(pass2)
-                    pass2string = ''
-                    for line in pass2: 
-                        pass2string += line
-                    self.output+=pass2string
-                #print(str(nozzleFirings))
+                    spacing = 1.0/self.passes
+                    for pY in range(self.passes):
+                        currentP = []
+                        for column, firingVal in enumerate(headVals):
+                            if firingVal:
+                                currentOffset = self.offsets[headNumber]
+                                for pX in range(self.passes):
+                                    currentP.append("G1X"+str(self.increment*(column+pX*spacing)-currentOffset[0])+"Y"+str((y+pY*spacing)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
+                                    currentP.append("M400\n")
+                                    currentP.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
+                        if pY%2==1: currentP = reversed(currentP)
+                        passString = ''
+                        for line in currentP: 
+                            passString += line
+                        self.output+=passString
                 nozzleFirings = [0 for x in range(0, self.img.cols)]
                 nozzleFirings = [copy.copy(nozzleFirings) for x in range(0, 4)]
         f = open(self.outFile, 'w')
@@ -160,6 +152,10 @@ if __name__ == "__main__":
                         default="[0, 0]",
                         help="Head offset in millimeters. Default: %(default)s"
                         )
+    parser.add_argument("-p", "--passes",
+                        default="1",
+                        help="Number of subpixel passes to perform."
+                        )
 
     #Always output help by default
     if len(sys.argv) == 1:
@@ -178,5 +174,6 @@ if __name__ == "__main__":
                                   nozzles=float(args.nozzles),
                                   area=ast.literal_eval(args.area),
                                   feedrate=float(args.feedrate),
-                                  offsets=offsets
+                                  offsets=offsets,
+                                  passes=int(args.passes)
                                   )
