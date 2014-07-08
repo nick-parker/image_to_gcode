@@ -17,7 +17,9 @@ class ImageToGcode():
                  nozzles,
                  area,
                  feedrate,
-                 offsets,passes=1,
+                 offsets,
+                 vpasses=1,
+                 hpasses=1,
                  verbose=False):
         self.img = cv.LoadImageM(img)
         self.output = ""
@@ -32,7 +34,8 @@ class ImageToGcode():
         self.blue = (255.0, 0.0, 0.0, 0.0)
         self.black = (0.0, 0.0, 0.0, 0.0)
         self.offsets = offsets
-        self.passes = passes
+        self.vpasses = vpasses
+        self.hpasses = hpasses
         self.debug_to_terminal()
         self.make_gcode()
 
@@ -57,14 +60,15 @@ class ImageToGcode():
                     pass
             if y % 12 == 0 and y > 0:
                 for headNumber, headVals in enumerate(nozzleFirings):
-                    spacing = 1.0/self.passes
-                    for pY in range(self.passes):
+                    vspacing = 1.0/self.vpasses
+                    hspacing = 1.0/self.hpasses
+                    for pY in range(self.vpasses):
                         currentP = []
                         for column, firingVal in enumerate(headVals):
                             if firingVal:
                                 currentOffset = self.offsets[headNumber]
-                                for pX in range(self.passes):
-                                    currentP.append("G1X"+str(self.increment*(column+pX*spacing)-currentOffset[0])+"Y"+str((y+pY*spacing)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
+                                for pX in range(self.hpasses):
+                                    currentP.append("G1X"+str(self.increment*(column+pX*hspacing)-currentOffset[0])+"Y"+str((y+pY*vspacing)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
                                     currentP.append("M400\n")
                                     currentP.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
                         if pY%2==1: currentP = reversed(currentP)
@@ -152,9 +156,13 @@ if __name__ == "__main__":
                         default="[0, 0]",
                         help="Head offset in millimeters. Default: %(default)s"
                         )
-    parser.add_argument("-p", "--passes",
+    parser.add_argument("-hp", "--hpasses",
                         default="1",
-                        help="Number of subpixel passes to perform."
+                        help="Number of subpixel passes to perform in X"
+                        )
+    parser.add_argument("-vp", "--vpasses",
+                        default="1",
+                        help="Number of subpixel passes to perform in Y"
                         )
 
     #Always output help by default
@@ -175,5 +183,6 @@ if __name__ == "__main__":
                                   area=ast.literal_eval(args.area),
                                   feedrate=float(args.feedrate),
                                   offsets=offsets,
-                                  passes=int(args.passes)
+                                  vpasses=int(args.vpasses),
+                                  hpasses=int(args.hpasses)
                                   )
