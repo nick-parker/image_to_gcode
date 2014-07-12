@@ -22,6 +22,7 @@ class ImageToGcode():
                  hpasses=1,
                  verbose=False):
         self.img = cv.LoadImageM(img)
+        self.img = cv.flip(self.img,0)
         self.output = ""
         self.outFile = os.path.splitext(os.path.abspath(img))[0] + ".gco"
         self.spread = spread
