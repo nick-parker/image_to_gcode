@@ -22,7 +22,6 @@ class ImageToGcode():
                  hpasses=1,
                  verbose=False):
         self.img = cv.LoadImageM(img)
-        self.img = cv.flip(self.img,0)
         self.output = ""
         self.outFile = os.path.splitext(os.path.abspath(img))[0] + ".gco"
         self.spread = spread
@@ -69,7 +68,7 @@ class ImageToGcode():
                             if firingVal:
                                 currentOffset = self.offsets[headNumber]
                                 for pX in range(self.hpasses):
-                                    currentP.append("G1X"+str(self.img.rows-(self.increment*(column+pX*hspacing)-currentOffset[0]))+"Y"+str(self.img.cols-((y+pY*vspacing)/12*self.spread-currentOffset[1]))+"F"+str(self.feedrate)+"\n")
+                                    currentP.append("G1X"+str(self.increment*(column+pX*hspacing)-currentOffset[0])+"Y"+str((y+pY*vspacing)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
                                     currentP.append("M400\n")
                                     currentP.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
                         if pY%2==1: currentP = reversed(currentP)
