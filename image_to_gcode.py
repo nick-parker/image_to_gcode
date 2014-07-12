@@ -9,10 +9,6 @@ import termcolor
 import ast
 import copy
 
-def reverse(i):
-    return int(bin(i)[:1:-1], 2)
-    
-
 class ImageToGcode():
     def __init__(self,
                  img,
@@ -44,7 +40,7 @@ class ImageToGcode():
 
     def make_gcode(self):
         self.output = "M106"  # Start Fan
-        nozzleFirings = [4096 for x in range(0, self.img.cols)]
+        nozzleFirings = [0 for x in range(0, self.img.cols)]
         nozzleFirings = [copy.copy(nozzleFirings) for x in range(0, 4)]
         scan = range(0, self.img.rows)
         scan.reverse()
@@ -52,18 +48,15 @@ class ImageToGcode():
             for x in range(0, self.img.cols):
                 color = cv.Get2D(self.img, y, x)
                 if color == self.red:
-                    nozzleFirings[0][x] += 1 << y % self.nozzles
+                    nozzleFirings[0][x] += 4096 >> 1+ y % self.nozzles
                 elif color == self.green:
-                    nozzleFirings[1][x] += 1 << y % self.nozzles
+                    nozzleFirings[1][x] += 4096 >> 1+ y % self.nozzles
                 elif color == self.blue:
-                    nozzleFirings[2][x] += 1 << y % self.nozzles
+                    nozzleFirings[2][x] += 4096 >> 1+ y % self.nozzles
                 elif color == self.black:
-                    nozzleFirings[3][x] += 1 << y % self.nozzles
+                    nozzleFirings[3][x] += 4096 >> 1+ y % self.nozzles
                 else:
                     pass
-            for color in range(4):
-                for firing in range(len(color)):
-                    nozzleFirings[color][firing] = reverse(nozzleFirings[color][firing])>>1
             if y % 12 == 0 and y > 0:
                 for headNumber, headVals in enumerate(nozzleFirings):
                     vspacing = 1.0/self.vpasses
@@ -71,23 +64,27 @@ class ImageToGcode():
                     for pY in range(self.vpasses):
                         currentP = []
                         for column, firingVal in enumerate(headVals):
+                            print(firingVal)
                             if firingVal:
                                 currentOffset = self.offsets[headNumber]
                                 for pX in range(self.hpasses):
-                                    currentP.append("G1X"+str(self.increment*((self.img.cols-column)+pX*hspacing)-currentOffset[0])+"Y"+str(((self.img.rows-y)+pY*vspacing)/12*self.spread-currentOffset[1])+"F"+str(self.feedrate)+"\n")
-                                    currentP.append("M400\n")
-                                    currentP.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
+                                    movement = []
+                                    movement.append("G1 X"+str(self.increment*((self.img.cols-column)+pX*hspacing)+currentOffset[0])+" Y"+str(((self.img.rows-y)+pY*vspacing)/12*self.spread-currentOffset[1])+" F"+str(self.feedrate)+"\n")
+                                    movement.append("M400\n")
+                                    movement.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
+                                    currentP.append(movement)
                         if pY%2==1: currentP = reversed(currentP)
                         passString = ''
-                        for line in currentP: 
-                            passString += line
+                        for m in currentP:
+                            for line in m: 
+                                passString += line
                         self.output+=passString
-                nozzleFirings = [4096 for x in range(0, self.img.cols)]
+                nozzleFirings = [0 for x in range(0, self.img.cols)]
                 nozzleFirings = [copy.copy(nozzleFirings) for x in range(0, 4)]
         f = open(self.outFile, 'w')
         f.write(self.output)
         f.close()
-        #print(self.output)
+        print(self.output)
 
     def debug_to_terminal(self):
         print("Rows: "+str(self.img.rows))
