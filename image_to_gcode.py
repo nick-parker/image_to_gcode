@@ -10,6 +10,10 @@ import ast
 import copy
 
 
+def reverse(i):
+    #reverse the binary representation of an int
+    return int(bin(i)[:1:-1], 2)
+
 class ImageToGcode():
     def __init__(self,
                  img,
@@ -49,13 +53,13 @@ class ImageToGcode():
             for x in range(0, self.img.cols):
                 color = cv.Get2D(self.img, y, x)
                 if color == self.red:
-                    nozzleFirings[0][x] += 1 << y % self.nozzles
+                    nozzleFirings[0][x] += reverse(1 << y % self.nozzles)
                 elif color == self.green:
-                    nozzleFirings[1][x] += 1 << y % self.nozzles
+                    nozzleFirings[1][x] += reverse(1 << y % self.nozzles)
                 elif color == self.blue:
-                    nozzleFirings[2][x] += 1 << y % self.nozzles
+                    nozzleFirings[2][x] += reverse(1 << y % self.nozzles)
                 elif color == self.black:
-                    nozzleFirings[3][x] += 1 << y % self.nozzles
+                    nozzleFirings[3][x] += reverse(1 << y % self.nozzles)
                 else:
                     pass
             if y % 12 == 0 and y > 0:
