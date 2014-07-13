@@ -68,7 +68,7 @@ class ImageToGcode():
                                 currentOffset = self.offsets[headNumber]
                                 for pX in range(self.hpasses):
                                     movement = []
-                                    movement.append("G1 X"+str(self.increment*((self.img.cols-column)+pX*hspacing)+currentOffset[0])+" Y"+str(((self.img.rows-y)+pY*vspacing)/12*self.spread-currentOffset[1])+" F"+str(self.feedrate)+"\n")
+                                    movement.append("G1 X"+str(self.increment*((column)+pX*hspacing)+currentOffset[0])+" Y"+str(((self.img.rows-y)+pY*vspacing)/12*self.spread-currentOffset[1])+" F"+str(self.feedrate)+"\n")
                                     movement.append("M400\n")
                                     movement.append("M700 P"+str(headNumber)+" S"+str(firingVal)+"\n")
                                     currentP.append(movement)
