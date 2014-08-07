@@ -49,16 +49,12 @@ class ImageToGcode():
                 color = cv.Get2D(self.img, y, x)
                 if color == self.red:
                     nozzleFirings[0][x] += 1 << y % self.nozzles
-                    #nozzleFirings[0][x] += 4096 >>(1+ y % self.nozzles)
                 elif color == self.green:
                     nozzleFirings[1][x] += 1 << y % self.nozzles
-                    #nozzleFirings[1][x] += 4096 >>(1+ y % self.nozzles)
                 elif color == self.blue:
                     nozzleFirings[2][x] += 1 << y % self.nozzles
-                    #nozzleFirings[2][x] += 4096 >>(1+ y % self.nozzles)
                 elif color == self.black:
                     nozzleFirings[3][x] += 1 << y % self.nozzles
-                    #nozzleFirings[3][x] += 4096 >>(1+ y % self.nozzles)
                 else:
                     pass
             if y % 12 == 0 and y > 0:
@@ -81,7 +77,6 @@ class ImageToGcode():
                         for m in currentP:
                             for line in m: 
                                 passString += line
-                        
                         self.output+=passString
                 nozzleFirings = [0 for x in range(0, self.img.cols)]
                 nozzleFirings = [copy.copy(nozzleFirings) for x in range(0, 4)]
